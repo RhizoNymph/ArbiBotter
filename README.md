@@ -28,6 +28,7 @@ copy sample_config.cfg to a file name config.cfg in it, add your arbitrum websoc
 5) RUN arbibots_mints.py:
 
 cd ArbiBotter
+
 python arbibots_mints.py
 
 6) RUN arbibotter.py:
