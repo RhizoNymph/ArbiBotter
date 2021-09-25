@@ -23,7 +23,13 @@ redis-server redis.conf
 
 4) SETUP CONFIG.CFG
 
-copy sample_config.cfg to a file name config.cfg in it, add your arbitrum websocket node URL after arbitrum_wss (you can get a free node at https://www.alchemy.com/ and skip the payment option) add your wallet address after personal_address add your private key after private_key (make sure you keep config.cfg in the .gitignore) add your redis password after redis
+copy sample_config.cfg to a file name config.cfg in it, add your arbitrum websocket node URL after arbitrum_wss (you can get a free node at https://www.alchemy.com/ and skip the payment option) 
+
+add your wallet address after personal_address 
+
+add your private key after private_key (make sure you keep config.cfg in the .gitignore) 
+
+add your redis password after redis
 
 5) RUN arbibots_mints.py:
 
