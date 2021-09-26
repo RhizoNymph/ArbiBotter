@@ -1,7 +1,7 @@
 # ArbiBotter
 ArbiBotter
 
-######
+#############################################################################
 
 REDIS IS ONLY REQUIRED IF YOU WANT TO USE THE PANIC MINTING FEATURE
 
@@ -17,7 +17,7 @@ IF YOU DO NOT WANT TO USE THIS, SIMPLY DONT PASS THESE PARAMETERS AND SKIP
 
 TO STEP 5.
 
-###########################################################################
+#############################################################################
 
 
 
