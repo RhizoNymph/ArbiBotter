@@ -58,8 +58,6 @@ cd ../
 
 cd ArbiBotter
 
-python arbibots_mints.py
-
 6) RUN arbibotter.py:
 
 still in the arbibotter directory, 
