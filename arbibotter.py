@@ -14,17 +14,17 @@ import redis
 
 def offchain_mintPrice(secondsSinceAuctionStart):    
     if (secondsSinceAuctionStart < 18000):
-        return 2 * 10**19 - (2 * 10**19 * secondsSinceAuctionStart) / 18305
+        return Web3.fromWei(2 * 10**19 - (2 * 10**19 * secondsSinceAuctionStart) / 18305, 'ether')
     elif (secondsSinceAuctionStart < 21492):
-        return 2 * 10**18 - (2 * 10**18 * secondsSinceAuctionStart) / 21600
+        return Web3.fromWei(2 * 10**18 - (2 * 10**18 * secondsSinceAuctionStart) / 21600, 'ether')
     else:
-        return 10**16
+        return Web3.fromWei(10**16, 'ether')
 
 def offchain_secondsSinceAuctionStart(buy_price):
-    if buy_price > offchain_mintPrice(18000):
-        return 18305 - (3661 * buy_price)/4000000000000000000
-    elif buy_price > offchain_mintPrice(21492):
-        return 21600 - (27 * buy_price)/2500000000000000
+    if np.float64(buy_price) > offchain_mintPrice(18000):
+        return 18305 - (3661 * Web3.toWei(buy_price, 'ether'))/4000000000000000000
+    elif np.float64(buy_price) > offchain_mintPrice(21492):
+        return 21600 - (27 * Web3.toWei(buy_price, 'ether'))/2500000000000000
     else:
         return 21492
 
@@ -49,7 +49,7 @@ def send_tx(instance, signed_tx):
     instance.eth.send_raw_transaction(signed_tx.rawTransaction)
 
 def get_num_mints(redis_instance):
-    redis_instance.get(0)
+    return int(redis_instance.get(0))
 
 def mint_at(personal_address, privatekey, node, buy_price, qty, gwei, panic_point=0, max_price=None):
     if panic_point == 0:        
@@ -75,17 +75,28 @@ def mint_at(personal_address, privatekey, node, buy_price, qty, gwei, panic_poin
         target_seconds = offchain_secondsSinceAuctionStart(max_price)
 
     end = time.monotonic()
-    time.sleep(target_seconds - current_seconds - (end - start) - 60)
+
+    time_to_sleep = target_seconds - current_seconds - (end - start) - 60
+    if time_to_sleep > 0:
+        time.sleep(time_to_sleep)
 
     if panic_point > 0:
-        while np.float64(Web3.fromWei(contract.functions.mintPrice().call(), 'ether')) > np.float64(buy_price):
-            n = get_num_mints(r0)
+        panicked = False
+        while (np.float64(Web3.fromWei(contract.functions.mintPrice().call(), 'ether')) > np.float64(buy_price)) & (panicked == False):            
+            n = get_num_mints(r0)            
             if n > panic_point:
-                break        
+                panicked = True
             time.sleep(1)
 
-    for nonce in range(node.eth.get_transaction_count(personal_address), qty+1):
-        tx = {'chainId': 42161, 'from': personal_address, 'value': str(Web3.toHex(Web3.toWei(np.float64(Web3.fromWei(contract.functions.mintPrice().call(), 'ether')), 'ether'))), 'gasPrice': str(Web3.toHex(Web3.toWei(gas_price, 'gwei'))), 'nonce': nonce}
+    current_nonce = node.eth.get_transaction_count(personal_address)
+    for nonce in range(current_nonce+1, current_nonce+qty+2):
+        tx = {
+                'chainId': 42161,
+                'from': personal_address, 
+                'value': str(Web3.toHex(contract.functions.mintPrice().call())),
+                'gasPrice': str(Web3.toHex(Web3.toWei(gas_price, 'gwei'))),
+                'nonce': nonce
+            }
         signed_tx = w3.eth.account.sign_transaction(contract.functions.mint().buildTransaction(tx), private_key=privatekey)        
         hash = node.toHex(node.keccak(signed_tx.rawTransaction))
         
@@ -101,8 +112,10 @@ personal_address = cfg["IDENTITY"]['personal_address']
 node = Web3(Web3.WebsocketProvider(cfg['NodeURLs']['arbitrum_wss']))
 
 if len(sys.argv) == 3:
+    print(3)
     mint_at(personal_address, privatekey, node, np.float64(sys.argv[1]), int(sys.argv[2]), 3)
 elif len(sys.argv) == 5:
-    mint_at(personal_address, privatekey, node, np.float64(sys.argv[1]), int(sys.argv[2]), 3, sys.argv[3], sys.argv[4])
+    print(5)
+    mint_at(personal_address, privatekey, node, np.float64(sys.argv[1]), int(sys.argv[2]), 3, np.float64(sys.argv[3]), np.float64(sys.argv[4]))
 else:
     print('arguments must be MINT_PRICE QUANTITY and optionally be followed by PANIC_POINT MAX_PRICE')
