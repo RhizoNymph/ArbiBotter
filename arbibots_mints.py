@@ -51,8 +51,8 @@ def is_arbibots_mint(tx):
         return
     
     if (tx['to'] == '0xc1fcf330b4b4c773fa7e6835f681e8f798e9ebff'):
-        if ('data' in tx.keys()):
-            if (tx['data'].lower()[0:10] == '0x1249c58b'):                
+        if ('input' in tx.keys()):
+            if (tx['input'].lower()[0:10] == '0x1249c58b'):                
                 current = int(r0.get(0))
                 if current == 24: 
                     r0.set(0, 0)
